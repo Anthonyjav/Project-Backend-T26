@@ -54,11 +54,10 @@ module.exports = (sequelize, DataTypes) => {
     paymentStatus: DataTypes.STRING,
     paymentResponse: DataTypes.TEXT,
     paymentDate: DataTypes.DATE,
-    orderidizipay: DataTypes.STRING,
-    transactionid: DataTypes.STRING,
-    paymentstatus: DataTypes.STRING,
-    paymentresponse: DataTypes.TEXT,
-    paymentdate: DataTypes.DATE,
+    orderId: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
   }, {
     sequelize,
     modelName: 'Orden',
