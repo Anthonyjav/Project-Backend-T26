@@ -384,11 +384,11 @@ router.post("/pago-exitoso", async (req, res) => {
     }
 
    ////CAMBIAR RUTA https://frontend-project-p6uq.onrender.com/
-    res.redirect(`https://project-backend-t26.onrender.com/usuario/perfil?ordenId=${nuevaOrden.id}&success=true`);
+    res.redirect(`http://localhost:3000/usuario/perfil?ordenId=${nuevaOrden.id}&success=true`);
 
   } catch (error) {
     console.log("❌ Error en pago-exitoso:", error);
-    res.redirect('https://project-backend-t26.onrender.com/usuario/perfil?success=false');
+    res.redirect('http://localhost:3000/usuario/perfil?success=false');
   }
 });
 
