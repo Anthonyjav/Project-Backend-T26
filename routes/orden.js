@@ -9,7 +9,17 @@ const { Orden, OrdenItem, Usuario,Producto  } = require('../models');
 router.get('/', async (req, res) => {
   try {
     const ordenes = await Orden.findAll({
-      include: ['items', 'usuario'],
+      include: [
+        {
+          model: OrdenItem,
+          as: 'items'
+        },
+        {
+          model: Usuario,
+          as: 'usuario',
+          attributes: ['id', 'nombre', 'apellido', 'email']
+        }
+      ],
       order: [['createdAt', 'DESC']]
     });
     res.json(ordenes);
