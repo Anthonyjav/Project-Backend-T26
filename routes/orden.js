@@ -12,20 +12,28 @@ router.get('/', async (req, res) => {
       include: [
         {
           model: OrdenItem,
-          as: 'items'
+          as: 'items',
+          required: false
         },
         {
           model: Usuario,
           as: 'usuario',
-          attributes: ['id', 'nombre', 'apellido', 'email']
+          attributes: ['id', 'nombre', 'apellido', 'email'],
+          required: false
         }
       ],
-      order: [['createdAt', 'DESC']]
+      order: [['createdAt', 'DESC']],
+      subQuery: false
     });
     res.json(ordenes);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error al obtener órdenes' });
+    console.error('ERROR EN GET /ordenes:', error.message);
+    console.error('STACK:', error.stack);
+    res.status(500).json({ 
+      error: 'Error al obtener órdenes',
+      message: error.message,
+      details: error.stack
+    });
   }
 });
 
