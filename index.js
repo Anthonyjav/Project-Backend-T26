@@ -20,7 +20,7 @@ const whitelist = [
   'http://localhost:3000',
   'http://localhost:5173',
   'https://sgstudio.shop/',
-  'https://frontend-project-p6uq.onrender.com'
+  'https://project-front-t26.onrender.com',
   
 ];
 
