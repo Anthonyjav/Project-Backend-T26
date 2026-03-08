@@ -10,9 +10,9 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: 'CASCADE'
       });
 
-      CarritoItem.belongsTo(models.Producto, {
-        foreignKey: 'productoId',
-        as: 'producto',
+      CarritoItem.belongsTo(models.ProductoVariante, {
+        foreignKey: 'varianteId',
+        as: 'variante',
         onDelete: 'CASCADE'
       });
     }
@@ -23,16 +23,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    productoId: {
+    varianteId: {
       type: DataTypes.INTEGER,
       allowNull: false
     },
     cantidad: {
       type: DataTypes.INTEGER,
       defaultValue: 1
-    },
-    talla: DataTypes.STRING,
-    color: DataTypes.STRING
+    }
   }, {
     sequelize,
     modelName: 'CarritoItem',

@@ -10,6 +10,12 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: 'SET NULL',     
         onUpdate: 'CASCADE'
       });
+      Producto.hasMany(models.ProductoVariante, {
+        foreignKey: 'productoId',
+        as: 'variantes',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+      });
     }
   }
 
@@ -29,9 +35,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     categoriaId: DataTypes.INTEGER,
 
-    color: DataTypes.STRING,        
-    talla: DataTypes.STRING,         
-    cantidad: DataTypes.INTEGER,     
     composicion: DataTypes.STRING,   
     info: DataTypes.TEXT,             
     cuidados: DataTypes.TEXT,

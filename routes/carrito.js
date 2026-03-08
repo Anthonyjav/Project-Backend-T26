@@ -14,8 +14,12 @@ router.get('/:usuarioId', async (req, res) => {
           model: CarritoItem,
           as: 'items',
           include: {
-            model: Producto,
-            as: 'producto'
+            model: ProductoVariante,
+            as: 'variante',
+            include: {
+              model: Producto,
+              as: 'producto'
+            }
           }
         },
         {
@@ -45,7 +49,7 @@ router.get('/:usuarioId', async (req, res) => {
 // Agregar producto al carrito
 router.post('/add', async (req, res) => {
   try {
-    const { usuarioId, productoId, cantidad, talla, color } = req.body;
+    const { usuarioId, varianteId, cantidad } = req.body;
 
     let carrito = await Carrito.findOne({ where: { usuarioId } });
     if (!carrito) carrito = await Carrito.create({ usuarioId });
@@ -53,9 +57,7 @@ router.post('/add', async (req, res) => {
     let item = await CarritoItem.findOne({
       where: {
         carritoId: carrito.id,
-        productoId,
-        talla,
-        color
+        varianteId
       }
     });
 
@@ -65,10 +67,8 @@ router.post('/add', async (req, res) => {
     } else {
       item = await CarritoItem.create({
         carritoId: carrito.id,
-        productoId,
-        cantidad,
-        talla,
-        color
+        varianteId,
+        cantidad
       });
     }
 
@@ -83,14 +83,12 @@ router.post('/add', async (req, res) => {
 router.put('/update/:itemId', async (req, res) => {
   try {
     const { itemId } = req.params;
-    const { cantidad, talla, color } = req.body;
+    const { cantidad } = req.body;
 
     const item = await CarritoItem.findByPk(itemId);
     if (!item) return res.status(404).json({ error: 'Item no encontrado' });
 
     if (cantidad !== undefined) item.cantidad = cantidad;
-    if (talla !== undefined) item.talla = talla;
-    if (color !== undefined) item.color = color;
 
     await item.save();
     res.json(item);

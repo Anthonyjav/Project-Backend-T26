@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { Producto, Categoria } = require('../models');
+const { Producto, Categoria, ProductoVariante } = require('../models');
 const multer = require('multer');
 const path = require('path');
 const upload = require('../middlewares/upload');
@@ -20,9 +20,7 @@ router.post(
         descripcion,
         precio,
         categoriaId,
-        color,
-        talla,
-        cantidad,
+        variantes, // array de {talla, color, cantidad}
         composicion,
         info,
         cuidados,
@@ -38,9 +36,6 @@ router.post(
         precio,
         imagen: imagenes,
         categoriaId,
-        color,
-        talla,
-        cantidad,
         composicion,
         info,
         cuidados,
@@ -48,7 +43,26 @@ router.post(
         activo: activo !== undefined ? activo === 'true' : true,
       });
 
-      res.status(201).json(nuevoProducto);
+      // Crear variantes si se proporcionan
+      if (variantes && Array.isArray(variantes)) {
+        const variantesData = variantes.map(v => ({
+          productoId: nuevoProducto.id,
+          talla: v.talla,
+          color: v.color,
+          cantidad: v.cantidad
+        }));
+        await ProductoVariante.bulkCreate(variantesData);
+      }
+
+      // Obtener el producto con variantes
+      const productoConVariantes = await Producto.findByPk(nuevoProducto.id, {
+        include: [
+          { model: Categoria, as: 'categoria' },
+          { model: ProductoVariante, as: 'variantes' }
+        ]
+      });
+
+      res.status(201).json(productoConVariantes);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Error al crear producto' });
@@ -60,7 +74,10 @@ router.post(
 router.get('/', async (req, res) => {
   try {
     const productos = await Producto.findAll({
-      include: { model: Categoria, as: 'categoria' }
+      include: [
+        { model: Categoria, as: 'categoria' },
+        { model: ProductoVariante, as: 'variantes' }
+      ]
     });
 
     res.json(productos);
@@ -75,7 +92,10 @@ router.get('/seleccionados', async (req, res) => {
   try {
     const productos = await Producto.findAll({
       where: { seleccionado: true },
-      include: { model: Categoria, as: 'categoria' }
+      include: [
+        { model: Categoria, as: 'categoria' },
+        { model: ProductoVariante, as: 'variantes' }
+      ]
     });
 
     res.json(productos);
@@ -90,7 +110,10 @@ router.get('/seleccionados', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const producto = await Producto.findByPk(req.params.id, {
-      include: { model: Categoria, as: 'categoria' }
+      include: [
+        { model: Categoria, as: 'categoria' },
+        { model: ProductoVariante, as: 'variantes' }
+      ]
     });
 
     if (!producto) {
@@ -121,9 +144,7 @@ router.put(
         descripcion,
         precio,
         categoriaId,
-        color,
-        talla,
-        cantidad,
+        variantes, // array de {talla, color, cantidad}
         composicion,
         info,
         cuidados,
@@ -142,18 +163,34 @@ router.put(
         precio,
         imagen: nuevasImagenes,
         categoriaId,
-        color,
-        talla,
-        cantidad,
         composicion,
         info,
         cuidados,
         seleccionado,
         ...(activo !== undefined && { activo: activo === 'true' }),
-
       });
 
-      res.json(producto);
+      // Actualizar variantes: eliminar existentes y crear nuevas
+      if (variantes && Array.isArray(variantes)) {
+        await ProductoVariante.destroy({ where: { productoId: req.params.id } });
+        const variantesData = variantes.map(v => ({
+          productoId: req.params.id,
+          talla: v.talla,
+          color: v.color,
+          cantidad: v.cantidad
+        }));
+        await ProductoVariante.bulkCreate(variantesData);
+      }
+
+      // Obtener el producto actualizado con variantes
+      const productoActualizado = await Producto.findByPk(req.params.id, {
+        include: [
+          { model: Categoria, as: 'categoria' },
+          { model: ProductoVariante, as: 'variantes' }
+        ]
+      });
+
+      res.json(productoActualizado);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Error al actualizar el producto' });

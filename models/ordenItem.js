@@ -11,10 +11,10 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: 'CASCADE'
       });
 
-      // Relación con la tabla Producto
-      OrdenItem.belongsTo(models.Producto, {
-        foreignKey: 'productoId',
-        as: 'producto',
+      // Relación con la tabla ProductoVariante
+      OrdenItem.belongsTo(models.ProductoVariante, {
+        foreignKey: 'varianteId',
+        as: 'variante',
         onDelete: 'SET NULL'
       });
     }
@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    productoId: {
+    varianteId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -36,10 +36,6 @@ module.exports = (sequelize, DataTypes) => {
     precio: {
       type: DataTypes.FLOAT,
       allowNull: false,
-    },
-    talla: {
-      type: DataTypes.STRING, // si usas talla
-      allowNull: true
     },
     nombreProducto: {
       type: DataTypes.STRING,
