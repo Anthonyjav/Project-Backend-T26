@@ -4,6 +4,8 @@ const { Usuario } = require('../models');
 const bcrypt = require('bcrypt');
 const auth = require('../middlewares/auth');
 const isAdmin = require('../middlewares/isAdmin');
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 
 // Listar todos los usuarios
@@ -119,7 +121,62 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });
+// Iniciar sesión / registro con Google
+router.post('/google', async (req, res) => {
+  try {
+    const { token } = req.body;
 
+    // Verificar el token con Google
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    const emailNormalizado = payload.email.toLowerCase().trim();
+
+    // Buscar el usuario por email
+    let usuario = await Usuario.findOne({ where: { email: emailNormalizado } });
+
+    // Si no existe, crearlo (registro automático)
+    if (!usuario) {
+      // Las cuentas de Google no tienen contraseña, así que generamos una aleatoria
+      const passwordAleatoria = await bcrypt.hash(
+        Math.random().toString(36).slice(-12) + Date.now(),
+        10
+      );
+
+      usuario = await Usuario.create({
+        nombre: payload.given_name || payload.name,
+        apellido: payload.family_name || '',
+        email: emailNormalizado,
+        password: passwordAleatoria,
+        rol: 'user',
+      });
+    }
+
+    // Ocultar contraseña y firmar el JWT igual que en /login
+    const { password: pw, ...usuarioSinPassword } = usuario.toJSON();
+
+    const jwtToken = jwt.sign(
+      {
+        id: usuario.id,
+        rol: usuario.rol,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    res.json({
+      usuario: usuarioSinPassword,
+      token: jwtToken,
+    });
+
+  } catch (error) {
+    console.error('Error en login con Google:', error);
+    res.status(401).json({ error: 'No se pudo verificar el token de Google' });
+  }
+});
 
 
 router.put('/:id', auth, async (req, res) => {
